@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MR CUBAN Booking</title>
+<style>
+/* ======= Same CSS as before ======= */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#fffaf0,#ffe5b4);display:flex;align-items:center;justify-content:center;min-height:100vh;}
+.container{background:#fff;border-radius:20px;padding:30px 25px;width:100%;max-width:450px;box-shadow:0 10px 25px rgba(0,0,0,0.1);text-align:center;}
+h1{color:#ff7a00;font-size:28px;margin-bottom:25px;font-weight:700;}
+label{font-weight:600;color:#333;display:block;margin-bottom:8px;margin-top:15px;text-align:left;}
+select,input{width:100%;padding:12px 15px;border-radius:12px;border:1px solid #ddd;font-size:16px;transition:border 0.3s;}
+select:focus,input:focus{border-color:#ff7a00;outline:none;}
+button{width:100%;padding:14px;border:none;border-radius:12px;background:#ff7a00;color:#fff;font-size:18px;font-weight:600;margin-top:25px;cursor:pointer;transition:background 0.3s, transform 0.2s;}
+button:hover{background:#ff9500;transform:translateY(-2px);}
+.toggle-container{display:flex;justify-content:center;align-items:center;margin-bottom:20px;}
+.toggle-label{margin-right:10px;font-weight:600;color:#333;}
+.switch{position:relative;display:inline-block;width:60px;height:30px;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;border-radius:34px;transition:0.4s;}
+.slider:before{position:absolute;content:"";height:22px;width:22px;left:4px;bottom:4px;background-color:white;border-radius:50%;transition:0.4s;}
+input:checked+.slider{background-color:#ff7a00;}
+input:checked+.slider:before{transform:translateX(30px);}
+.popup{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:1000;}
+.popup-content{background:#fff;border-radius:18px;width:90%;max-width:400px;padding:25px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.15);}
+.popup h2{color:#ff7a00;margin-bottom:20px;}
+.vehicle-option{display:flex;justify-content:space-between;padding:12px 20px;border:1px solid #eee;border-radius:12px;margin-bottom:12px;cursor:pointer;transition:all 0.3s;font-weight:500;}
+.vehicle-option:hover{background:#fff4ec;border-color:#ff7a00;}
+.cross:hover{font-size:27px;color:#ff7a00;cursor:pointer;}
+.summary-item{margin:10px 0;text-align:left;}
+input[type=text], input[type=tel]{margin-top:5px;}
+.support-box{margin-top:5px;padding:1px;color:#333;font-weight:600;margin-left:70px;margin-right:70px;}
+.support-box a{text-decoration:none;color:#ff7a00;margin-top:10px;margin-left:10px;}
+.support-box{display: flex;}
+.main_page_dawnloade_app{padding:7px;align-items:center;}
+.time-picker{display:flex;justify-content:space-between;margin-top:5px;}
+.time-picker select{width:32%;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>MR CUBAN Booking</h1>
+
+<!-- Toggle -->
+<div class="toggle-container">
+  <span class="toggle-label">One-way</span>
+  <label class="switch">
+    <input type="checkbox" id="tripToggle">
+    <span class="slider"></span>
+  </label>
+  <span id="tripLabel" style="margin-left:10px;">Round-trip</span>
+</div>
+
+<label>Pickup Address</label>
+<select id="pickup" onchange="checkOtherPlace(this)">
+  <option value="Lalganj">Lalganj</option>
+  <option value="MCF Lalganj">MCF Lalganj</option>
+  <option value="Other place">Other place</option>
+</select>
+
+<label>Drop Address</label>
+<select id="drop" onchange="checkOtherPlace(this)">
+  <option value="Kanpur">Kanpur</option>
+  <option value="Lucknow">Lucknow</option>
+  <option value="Other place">Other place</option>
+</select>
+
+<button onclick="openVehiclePopup()">Choose Vehicle</button>
+
+<!-- Support Option -->
+<div class="support-box">
+  <button class="main_page_dawnloade_app" onclick="window.open('https://drive.google.com/file/d/17FMjkXYGBzUCzXtl4TWYvV-whaHMQwD0/view?usp=drivesdk','_blank')">Download App</button>
+  <a href="tel:7522020838"> 📞Support:</a>
+</div>
+</div>
+
+<!-- Generic Popup -->
+<div class="popup" id="roundTripPopup">
+  <div class="popup-content">
+    <h2 id="popupTitle">Notice</h2>
+    <p id="popupMessage">🚖 Please download the app.</p>
+    <button onclick="window.open('https://drive.google.com/file/d/17FMjkXYGBzUCzXtl4TWYvV-whaHMQwD0/view?usp=drivesdk','_blank')">Download App</button>
+    <div class="cross" onclick="closePopup('roundTripPopup')">✖</div>
+  </div>
+</div>
+
+<!-- Vehicle Popup -->
+<div class="popup" id="vehiclePopup">
+  <div class="popup-content">
+    <h2>Select Vehicle</h2>
+    <div id="vehicleOptions"></div>
+    <button onclick="closePopup('vehiclePopup')">Cancel</button>
+  </div>
+</div>
+
+<!-- Time & User Details Popup -->
+<div class="popup" id="timePopup">
+  <div class="popup-content">
+    <h2>Pickup Time & Details</h2>
+    <label>Name (optional)</label>
+    <input type="text" id="userName" placeholder="Your Name">
+    <label>Mobile Number</label>
+    <input type="tel" id="userMobile" placeholder="Your Mobile Number">
+    <label>Pickup Time</label>
+    <div class="time-picker">
+      <select id="hour"></select>
+      <select id="minute"></select>
+      <select id="ampm">
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
+    </div>
+    <button onclick="confirmRide()">Confirm Ride</button>
+    <button onclick="closePopup('timePopup')">Cancel</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<script>
+emailjs.init("1RkWQI-5SnHjIcy2g");
+
+const tripToggle = document.getElementById('tripToggle');
+const tripLabel = document.getElementById('tripLabel');
+
+tripToggle.addEventListener('change', () => {
+  if(tripToggle.checked){
+    document.getElementById("popupTitle").textContent = "Round-trip Selected";
+    document.getElementById("popupMessage").textContent = "🚖 Please download the app for Round-trip booking.";
+    document.getElementById('roundTripPopup').style.display='flex';
+    tripToggle.checked=false;
+    tripLabel.textContent='Round-Trip';
+  } else tripLabel.textContent='Round-Trip';
+});
+
+function checkOtherPlace(selectBox){
+  if(selectBox.value === "Other place"){
+    document.getElementById("popupTitle").textContent = "Other Place Selected";
+    document.getElementById("popupMessage").textContent = "🚖 Please download the app for other places booking.";
+    document.getElementById("roundTripPopup").style.display = "flex";
+    selectBox.value = ""; 
+  }
+}
+
+function closePopup(id){ document.getElementById(id).style.display='none'; }
+
+function openVehiclePopup(){
+  const pickup=document.getElementById('pickup').value;
+  const drop=document.getElementById('drop').value;
+  const vehicleOptionsDiv=document.getElementById('vehicleOptions');
+  vehicleOptionsDiv.innerHTML='';
+
+  let price = drop==="Kanpur"?1200:1499;
+  const vehicles = [
+    {name:"4 Seater",price:price},
+    {name:"6 Seater",price:price+500}
+  ];
+
+  vehicles.forEach(v=>{
+    const div=document.createElement('div');
+    div.className='vehicle-option';
+    div.innerHTML=`<span>${v.name}</span><span>₹${v.price}</span>`;
+    div.onclick=()=>{
+      closePopup('vehiclePopup');
+      selectedVehicle=v;
+      document.getElementById('timePopup').style.display='flex';
+      setDefaultTime();
+    };
+    vehicleOptionsDiv.appendChild(div);
+  });
+
+  document.getElementById('vehiclePopup').style.display='flex';
+}
+
+let selectedVehicle=null;
+
+// --- Time Handling ---
+const hourSelect = document.getElementById('hour');
+const minuteSelect = document.getElementById('minute');
+const ampmSelect = document.getElementById('ampm');
+
+// Populate hours and minutes
+for(let i=1;i<=12;i++){ let h=i<10?'0'+i:i; hourSelect.innerHTML += `<option value="${h}">${h}</option>`;}
+for(let i=0;i<60;i++){ let m=i<10?'0'+i:i; minuteSelect.innerHTML += `<option value="${m}">${m}</option>`;}
+
+// Set default time (+3 hours)
+function setDefaultTime(){
+  let now = new Date();
+  now.setHours(now.getHours()+3);
+  let hours = now.getHours();
+  let minutes = now.getMinutes();
+  let ampm = hours >=12 ? 'PM':'AM';
+  hours = hours%12 || 12;
+  hourSelect.value = hours.toString().padStart(2,'0');
+  minuteSelect.value = minutes.toString().padStart(2,'0');
+  ampmSelect.value = ampm;
+}
+
+// Validate selected time
+function checkTimeValidity(){
+  let selHours = parseInt(hourSelect.value);
+  let selMinutes = parseInt(minuteSelect.value);
+  let selAMPM = ampmSelect.value;
+
+  let sel24 = selHours % 12;
+  if(selAMPM==='PM') sel24 +=12;
+
+  let now = new Date();
+  now.setHours(now.getHours()+3);
+
+  let selDate = new Date();
+  selDate.setHours(sel24);
+  selDate.setMinutes(selMinutes);
+
+  if(selDate < now){
+    alert("Pickup time must be at least 3 hours from now!");
+    setDefaultTime();
+  }
+}
+
+hourSelect.addEventListener('change', checkTimeValidity);
+minuteSelect.addEventListener('change', checkTimeValidity);
+ampmSelect.addEventListener('change', checkTimeValidity);
+
+function getSelectedTime(){
+  return `${hourSelect.value}:${minuteSelect.value} ${ampmSelect.value}`;
+}
+
+// --- Confirm Ride ---
+function confirmRide(){
+  const name=document.getElementById('userName').value || "N/A";
+  const mobile=document.getElementById('userMobile').value;
+  const pickup=document.getElementById('pickup').value;
+  const drop=document.getElementById('drop').value;
+  const time=getSelectedTime();
+  if(!mobile){ alert("Please enter mobile number!"); return; }
+  const tripType="One-way";
+
+  const templateParams={
+    to_name:"MR CUBAN Admin",
+    user_name:name,
+    user_mobile:mobile,
+    pickup:pickup,
+    drop:drop,
+    tripType:tripType,
+    vehicle:selectedVehicle.name,
+    price:selectedVehicle.price,
+    time:time
+  };
+
+  emailjs.send("service_noq572r","template_imymtxh",templateParams)
+  .then(response=>{
+      console.log("Email sent!",response);
+
+      const rideData = encodeURIComponent(JSON.stringify({
+        name,mobile,pickup,drop,tripType,vehicle:selectedVehicle.name,price:selectedVehicle.price,time
+      }));
+      window.open(`ride-confirmed.html?data=${rideData}`, '_blank');
+
+  },error=>{
+      console.log("Email failed...",error);
+  });
+}
+</script>
+</body>
+</html>
