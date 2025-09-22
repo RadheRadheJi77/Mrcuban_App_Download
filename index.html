@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MR CUBAN Booking</title>
 <style>
-/* ======= Same CSS as before ======= */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#fffaf0,#ffe5b4);display:flex;align-items:center;justify-content:center;min-height:100vh;}
 .container{background:#fff;border-radius:20px;padding:30px 25px;width:100%;max-width:450px;box-shadow:0 10px 25px rgba(0,0,0,0.1);text-align:center;}
@@ -33,10 +32,34 @@ input:checked+.slider:before{transform:translateX(30px);}
 input[type=text], input[type=tel]{margin-top:5px;}
 .support-box{margin-top:5px;padding:1px;color:#333;font-weight:600;margin-left:70px;margin-right:70px;}
 .support-box a{text-decoration:none;color:#ff7a00;margin-top:10px;margin-left:10px;}
-.support-box{display: flex;}
+.support-box{display:flex;}
 .main_page_dawnloade_app{padding:7px;align-items:center;}
 .time-picker{display:flex;justify-content:space-between;margin-top:5px;}
 .time-picker select{width:32%;}
+
+/* Loader button */
+.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.8;
+}
+.loading:after {
+  content: "";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  transform: translateY(-50%);
+}
+@keyframes spin {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to { transform: translateY(-50%) rotate(360deg); }
+}
 </style>
 </head>
 <body>
@@ -112,7 +135,7 @@ input[type=text], input[type=tel]{margin-top:5px;}
         <option value="PM">PM</option>
       </select>
     </div>
-    <button onclick="confirmRide()">Confirm Ride</button>
+    <button onclick="confirmRide(event)">Confirm Ride</button>
     <button onclick="closePopup('timePopup')">Cancel</button>
   </div>
 </div>
@@ -146,7 +169,6 @@ function checkOtherPlace(selectBox){
 function closePopup(id){ document.getElementById(id).style.display='none'; }
 
 function openVehiclePopup(){
-  const pickup=document.getElementById('pickup').value;
   const drop=document.getElementById('drop').value;
   const vehicleOptionsDiv=document.getElementById('vehicleOptions');
   vehicleOptionsDiv.innerHTML='';
@@ -197,44 +219,28 @@ function setDefaultTime(){
   ampmSelect.value = ampm;
 }
 
-// Validate selected time
-function checkTimeValidity(){
-  let selHours = parseInt(hourSelect.value);
-  let selMinutes = parseInt(minuteSelect.value);
-  let selAMPM = ampmSelect.value;
-
-  let sel24 = selHours % 12;
-  if(selAMPM==='PM') sel24 +=12;
-
-  let now = new Date();
-  now.setHours(now.getHours()+3);
-
-  let selDate = new Date();
-  selDate.setHours(sel24);
-  selDate.setMinutes(selMinutes);
-
-  if(selDate < now){
-    alert("Pickup time must be at least 3 hours from now!");
-    setDefaultTime();
-  }
-}
-
-hourSelect.addEventListener('change', checkTimeValidity);
-minuteSelect.addEventListener('change', checkTimeValidity);
-ampmSelect.addEventListener('change', checkTimeValidity);
-
 function getSelectedTime(){
   return `${hourSelect.value}:${minuteSelect.value} ${ampmSelect.value}`;
 }
 
-// --- Confirm Ride ---
-function confirmRide(){
+// --- Confirm Ride with Loader ---
+function confirmRide(event){
+  const btn = event.target;
+  const originalText = btn.innerText;
+  btn.classList.add("loading");
+  btn.innerText = "Processing...";
+
   const name=document.getElementById('userName').value || "N/A";
   const mobile=document.getElementById('userMobile').value;
   const pickup=document.getElementById('pickup').value;
   const drop=document.getElementById('drop').value;
   const time=getSelectedTime();
-  if(!mobile){ alert("Please enter mobile number!"); return; }
+  if(!mobile){ 
+    alert("Please enter mobile number!"); 
+    btn.classList.remove("loading");
+    btn.innerText = originalText;
+    return; 
+  }
   const tripType="One-way";
 
   const templateParams={
@@ -258,8 +264,14 @@ function confirmRide(){
       }));
       window.open(`ride-confirmed.html?data=${rideData}`, '_blank');
 
+      btn.classList.remove("loading");
+      btn.innerText = originalText;
+
   },error=>{
       console.log("Email failed...",error);
+      alert("Failed! Please try again.");
+      btn.classList.remove("loading");
+      btn.innerText = originalText;
   });
 }
 </script>
